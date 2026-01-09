@@ -2,6 +2,7 @@
 """
 Generate SRS Document with Embedded Diagrams as DOCX
 This script creates a proper Word document with all diagrams embedded as images.
+Diagrams are sized appropriately to fit on pages.
 """
 
 from docx import Document
@@ -9,6 +10,8 @@ from docx.shared import Inches, Pt, Cm
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.style import WD_STYLE_TYPE
 from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
 import os
 
 # Paths
@@ -37,7 +40,7 @@ def add_numbered_list(doc, items):
     for item in items:
         doc.add_paragraph(item, style='List Number')
 
-def add_image(doc, image_path, caption, width_inches=6.0):
+def add_image(doc, image_path, caption, width_inches=5.5):
     """Add an image with caption to the document."""
     if os.path.exists(image_path):
         doc.add_picture(image_path, width=Inches(width_inches))
@@ -49,6 +52,7 @@ def add_image(doc, image_path, caption, width_inches=6.0):
         caption_para = doc.add_paragraph()
         caption_run = caption_para.add_run(caption)
         caption_run.italic = True
+        caption_run.font.size = Pt(10)
         caption_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
         doc.add_paragraph()  # Add spacing
     else:
@@ -237,7 +241,7 @@ def create_srs_document():
     add_heading(doc, '3. System Architecture & Diagrams', 1)
     doc.add_paragraph(
         'This section provides a visual overview of the system architecture through a series of UML diagrams. '
-        'All diagrams follow UML 2.5 standards and are rendered at high resolution (300 DPI) for clarity.'
+        'All diagrams follow UML 2.5 standards and are rendered at high resolution for clarity.'
     )
     
     # 3.1 Use Case Diagram
@@ -247,7 +251,11 @@ def create_srs_document():
         'and ML Service) and the main use cases of the Exam Security System. It shows the functional scope of the '
         'system from the users\' perspective.'
     )
-    add_image(doc, os.path.join(DIAGRAMS_DIR, "usecase.png"), "Figure 1: Use Case Diagram", 6.5)
+    doc.add_paragraph()
+    # Use Case Diagram - sized to fit on page (smaller width)
+    add_image(doc, os.path.join(DIAGRAMS_DIR, "usecase.png"), "Figure 1: Use Case Diagram", 5.0)
+    
+    doc.add_page_break()
     
     # 3.2 ERD
     add_heading(doc, '3.2 Entity Relationship Diagram (ERD)', 2)
@@ -257,7 +265,11 @@ def create_srs_document():
         'cardinality. The diagram includes 9 main tables: users, rooms, exams, students, exam_rosters, '
         'seating_plans, seat_assignments, check_ins, violations, and audit_logs.'
     )
-    add_image(doc, os.path.join(DIAGRAMS_DIR, "erd_updated.png"), "Figure 2: Entity Relationship Diagram (ERD)", 6.5)
+    doc.add_paragraph()
+    # ERD - sized to fit on page
+    add_image(doc, os.path.join(DIAGRAMS_DIR, "erd_updated.png"), "Figure 2: Entity Relationship Diagram (ERD)", 5.5)
+    
+    doc.add_page_break()
     
     # 3.3 Activity Diagram
     add_heading(doc, '3.3 Activity Diagram', 2)
@@ -266,12 +278,17 @@ def create_srs_document():
         'activities between the Administrator, Proctor, and the System. It illustrates the complete process '
         'from exam setup to report generation.'
     )
-    add_image(doc, os.path.join(DIAGRAMS_DIR, "activity.png"), "Figure 3: Activity Diagram (Exam Day Workflow)", 6.5)
+    doc.add_paragraph()
+    # Activity Diagram - sized to fit on page
+    add_image(doc, os.path.join(DIAGRAMS_DIR, "activity.png"), "Figure 3: Activity Diagram (Exam Day Workflow)", 4.5)
     
     doc.add_page_break()
     
     # 3.4 Sequence Diagrams
     add_heading(doc, '3.4 Sequence Diagrams', 2)
+    doc.add_paragraph(
+        'The following sequence diagrams detail the step-by-step interactions for key system workflows.'
+    )
     
     add_heading(doc, '3.4.1 Student Check-In Workflow', 3)
     doc.add_paragraph(
@@ -280,24 +297,34 @@ def create_srs_document():
         'It shows the communication between the Proctor, Web Interface, Backend Server, ML Service, Database, '
         'and File Storage components.'
     )
+    doc.add_paragraph()
+    # Check-In Sequence - sized to fit
     add_image(doc, os.path.join(DIAGRAMS_DIR, "sequence_checkin_detailed.png"), 
-              "Figure 4: Sequence Diagram - Student Check-In Workflow", 6.5)
+              "Figure 4: Sequence Diagram - Student Check-In Workflow", 5.5)
+    
+    doc.add_page_break()
     
     add_heading(doc, '3.4.2 Violation Recording Workflow', 3)
     doc.add_paragraph(
         'This sequence diagram shows the workflow for a proctor recording an exam violation with optional '
         'evidence attachment. It includes violation type selection, severity assignment, and audit logging.'
     )
+    doc.add_paragraph()
+    # Violation Sequence - sized to fit
     add_image(doc, os.path.join(DIAGRAMS_DIR, "sequence_violation.png"), 
-              "Figure 5: Sequence Diagram - Violation Recording Workflow", 6.5)
+              "Figure 5: Sequence Diagram - Violation Recording Workflow", 5.5)
+    
+    doc.add_page_break()
     
     add_heading(doc, '3.4.3 Report Generation Workflow', 3)
     doc.add_paragraph(
         'This sequence diagram illustrates the process of an administrator generating and exporting exam reports. '
         'It shows the interaction with the Report Generator Service and the various export options (CSV, PDF).'
     )
+    doc.add_paragraph()
+    # Reporting Sequence - sized to fit
     add_image(doc, os.path.join(DIAGRAMS_DIR, "sequence_reporting.png"), 
-              "Figure 6: Sequence Diagram - Report Generation Workflow", 6.5)
+              "Figure 6: Sequence Diagram - Report Generation Workflow", 5.5)
     
     doc.add_page_break()
     
